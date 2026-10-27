@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nogaro Septembre</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700;900&family=Barlow:wght@400;500&display=swap">
+</head>
+<body>
+
+<style>
+/* ── Tokens ─────────────────────────────────────────────────── */
+:root {
+  --bg:       #0e0e0f;
+  --surface:  #18181b;
+  --border:   #2a2a2e;
+  --fg:       #f0f0f2;
+  --muted:    #888891;
+  --accent:   #f97316;
+  --accent-d: #ea6509;
+  color-scheme: dark;
+}
+
+/* ── Reset ──────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
+body {
+  font-family: 'Barlow', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+header {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 20;
+  background: rgba(14,14,15,.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding-block: 14px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  background: rgba(14,14,15,.92);
+  z-index: 21;
+}
+.logo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 1.35rem;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  flex: 1;
+}
+.logo span { color: var(--accent) }
+.count-badge {
+  font-size: .72rem;
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+/* ── Search ─────────────────────────────────────────────────── */
+.search-wrap {
+  padding: 14px max(16px, env(safe-area-inset-left, 0px));
+}
+.search-wrap input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 14px;
+  color: var(--fg);
+  font-family: 'Barlow', sans-serif;
+  font-size: .95rem;
+  outline: none;
+  transition: border-color .15s;
+}
+.search-wrap input:focus { border-color: var(--accent) }
+.search-wrap input::placeholder { color: var(--muted) }
+
+/* ── Grid ───────────────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  padding: 4px max(16px, env(safe-area-inset-left, 0px)) 32px;
+}
+@media (max-width: 400px) {
+  .grid { grid-template-columns: repeat(2, 1fr); gap: 8px }
+}
+
+/* ── Card ───────────────────────────────────────────────────── */
+.card {
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition: transform .18s, box-shadow .18s;
+  -webkit-tap-highlight-color: transparent;
+}
+.card:active { transform: scale(.97) }
+.card-cover {
+  aspect-ratio: 3/2;
+  overflow: hidden;
+  background: #111;
+  position: relative;
+}
+.card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform .3s;
+}
+.card:hover .card-cover img { transform: scale(1.04) }
+.card-info {
+  padding: 10px 11px 12px;
+}
+.card-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-sub {
+  font-size: .75rem;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.card-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+/* ── Lightbox ───────────────────────────────────────────────── */
+#lb {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.97);
+  z-index: 100;
+  flex-direction: column;
+}
+#lb.open { display: flex }
+#lb-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px));
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(10px);
+  flex-shrink: 0;
+}
+#lb-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#lb-counter {
+  font-size: .8rem;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+#lb-close {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.1);
+  border: none;
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+#lb-img-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+#lb-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.lb-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.12);
+  border: none;
+  color: #fff;
+  font-size: 1.3rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.lb-arrow:active { background: rgba(255,255,255,.22) }
+#lb-prev { left: 8px }
+#lb-next { right: 8px }
+#lb-strip-wrap {
+  flex-shrink: 0;
+  overflow-x: auto;
+  padding: 10px max(16px, env(safe-area-inset-left, 0px));
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  display: flex;
+  gap: 7px;
+  scrollbar-width: none;
+}
+#lb-strip-wrap::-webkit-scrollbar { display: none }
+.strip-thumb {
+  flex-shrink: 0;
+  width: 54px; height: 40px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  opacity: .55;
+  transition: opacity .15s, border-color .15s;
+}
+.strip-thumb img { width: 100%; height: 100%; object-fit: cover }
+.strip-thumb.active { border-color: var(--accent); opacity: 1 }
+</style>
+
+<header>
+  <div class="logo">Nogaro <span>Septembre</span></div>
+  <span class="count-badge" id="total-count">174 photos - 20 motos</span>
+</header>
+
+<div class="search-wrap">
+  <input type="search" id="search" placeholder="Rechercher une moto, un pilote…" autocomplete="off">
+</div>
+
+<div class="grid" id="grid"></div>
+
+<!-- Lightbox -->
+<div id="lb">
+  <div id="lb-header">
+    <span id="lb-title"></span>
+    <span id="lb-counter"></span>
+    <button id="lb-close" aria-label="Fermer">✕</button>
+  </div>
+  <div id="lb-img-wrap">
+    <img id="lb-img" src="" alt="">
+    <button class="lb-arrow" id="lb-prev" aria-label="Précédent">‹</button>
+    <button class="lb-arrow" id="lb-next" aria-label="Suivant">›</button>
+  </div>
+  <div id="lb-strip-wrap"></div>
+</div>
+
+<script>
+const DATA = {
+  "moto_01_Aprilia_noir_146": {
+    label: "Aprilia Noir #146",
+    sub: "Aprilia RSV4 - Chipo",
+    photos: ["6J4A0049.jpg","6J4A0086.jpg","6J4A0152.jpg","6J4A0177.jpg","6J4A0198.jpg","6J4A0256.jpg","6J4A0442.jpg","6J4A0592.jpg","6J4A0628.jpg","6J4A0696.jpg","6J4A0756.jpg","6J4A9783.jpg","6J4A9810.jpg"]
+  },
+  "moto_02_Honda_CBR_blanc_rond_jaune": {
+    label: "CBR Blanc Rond Jaune",
+    sub: "Honda CBR",
+    photos: ["6J4A0056.jpg","6J4A0057.jpg","6J4A0147.jpg","6J4A9989.jpg","IMG_7067.jpg"]
+  },
+  "moto_03_Kawasaki_ZX10R_multicolore_Celani": {
+    label: "ZX-10R Multicolore",
+    sub: "Kawasaki - Celani",
+    photos: ["6J4A0008.jpg","6J4A0017.jpg","6J4A0069.jpg","6J4A0095.jpg","6J4A0288.jpg","6J4A0310.jpg","6J4A0386.jpg","6J4A0455.jpg","6J4A0656.jpg","6J4A0657.jpg","IMG_6781.jpg","IMG_6844.jpg","IMG_7193.jpg","IMG_7295.jpg","IMG_7297.jpg","IMG_8303.jpg","IMG_8389.jpg"]
+  },
+  "moto_04_Suzuki_GSXR_noir_violet_59_Doriane": {
+    label: "GSX-R Noir Violet #59",
+    sub: "Suzuki - Doriane",
+    photos: ["6J4A0053.jpg","6J4A0107.jpg","6J4A0313.jpg","6J4A0375.jpg","6J4A0400.jpg","6J4A0416.jpg","6J4A0427.jpg","6J4A0438.jpg","6J4A0440.jpg","6J4A0441.jpg"]
+  },
+  "moto_05_Yamaha_R1_Flo": {
+    label: "Yamaha R1",
+    sub: "Yamaha YZF-R1 - Flo",
+    photos: ["6J4A0227.jpg","6J4A0248.jpg","6J4A0282.jpg","6J4A9702.jpg","6J4A9703.jpg","6J4A9728.jpg","6J4A9729.jpg","6J4A9730.jpg","6J4A9731.jpg","6J4A9732.jpg","6J4A9759.jpg","6J4A9760.jpg","6J4A9790.jpg"]
+  },
+  "moto_06_Suzuki_GSXR_jaune_86": {
+    label: "GSX-R Jaune #86",
+    sub: "Suzuki GSX-R",
+    photos: ["6J4A0172.jpg","6J4A0245.jpg","6J4A0371.jpg","6J4A0377.jpg","6J4A0403.jpg","6J4A0430.jpg","6J4A0453.jpg","IMG_8624.jpg","IMG_8688.jpg"]
+  },
+  "moto_07_GSXR_RedBull_bleu": {
+    label: "GSX-R Red Bull",
+    sub: "Livrée Red Bull bleue",
+    photos: ["6J4A0047.jpg","6J4A0049.jpg"]
+  },
+  "moto_08_Ducati_Jean_Christophe": {
+    label: "Ducati",
+    sub: "Jean-Christophe",
+    photos: ["6J4A0084.jpg","6J4A0123.jpg"]
+  },
+  "moto_09_Julien_Charpentier_55": {
+    label: "Moto Blanc #55",
+    sub: "Julien Charpentier",
+    photos: ["6J4A0064.jpg","6J4A0158.jpg"]
+  },
+  "moto_10_Kawasaki_noir_vert_666": {
+    label: "Kawasaki Noir Vert #666",
+    sub: "Kawasaki",
+    photos: ["6J4A0006.jpg","6J4A0028.jpg","6J4A0052.jpg","6J4A0054.jpg","6J4A0068.jpg","6J4A0081.jpg","6J4A0093.jpg","6J4A0316.jpg","6J4A0345.jpg","6J4A9988.jpg","IMG_7085.jpg","IMG_8092.jpg","IMG_8149.jpg","IMG_8204.jpg"]
+  },
+  "moto_11_Yamaha_R1_Kevin": {
+    label: "Yamaha R1",
+    sub: "Yamaha YZF-R1 - Kevin",
+    photos: ["6J4A0026.jpg","6J4A0040.jpg","6J4A0060.jpg","6J4A0081.jpg","6J4A0132.jpg","6J4A0133.jpg","6J4A0178.jpg","6J4A0179.jpg","6J4A0180.jpg","6J4A0194.jpg","6J4A0267.jpg","6J4A0298.jpg","6J4A0300.jpg","6J4A0302.jpg","6J4A0385.jpg","6J4A9903.jpg","IMG_8641.jpg","IMG_8716.jpg"]
+  },
+  "moto_12_KTM_Superduke_noir_rouge": {
+    label: "KTM Superduke",
+    sub: "KTM Noir / Rouge",
+    photos: ["6J4A0012.jpg","6J4A0069.jpg","6J4A0106.jpg","6J4A0109.jpg"]
+  },
+  "moto_13_Naked_noire_Nelly": {
+    label: "Naked Noire",
+    sub: "Nelly",
+    photos: ["6J4A0003.jpg","6J4A0033.jpg","6J4A0044.jpg","6J4A0052.jpg","6J4A0055.jpg","6J4A0062.jpg","6J4A0063.jpg","6J4A0072.jpg","6J4A0084.jpg","6J4A0087.jpg","6J4A0101.jpg","6J4A0103.jpg","6J4A0104.jpg","6J4A0117.jpg","6J4A0160.jpg","6J4A0319.jpg","6J4A0352.jpg","6J4A0364.jpg","6J4A0500.jpg","6J4A9990.jpg","6J4A9991.jpg"]
+  },
+  "moto_14_Yamaha_R6_blanc_Nicolas": {
+    label: "Yamaha R6 Blanc",
+    sub: "Yamaha YZF-R6 - Nicolas",
+    photos: ["6J4A0026.jpg","6J4A0030.jpg","6J4A0065.jpg","6J4A0066.jpg","6J4A0077.jpg","6J4A0111.jpg","6J4A0306.jpg","6J4A0310.jpg","6J4A0342.jpg","6J4A0372.jpg","6J4A0373.jpg","6J4A9977.jpg","6J4A9978.jpg","6J4A9979.jpg"]
+  },
+  "moto_15_Kawasaki_ZX10R_blanc_Bihr_99_Papini": {
+    label: "ZX-10R Blanc Bihr #99",
+    sub: "Kawasaki - Papini",
+    photos: ["6J4A0006.jpg","6J4A0039.jpg","6J4A0040.jpg","6J4A0041.jpg","6J4A0066.jpg","6J4A0073.jpg","6J4A0091.jpg","6J4A0092.jpg"]
+  },
+  "moto_16_Yamaha_R6_noir_jaune_83": {
+    label: "Yamaha R6 Noir #83",
+    sub: "Yamaha YZF-R6",
+    photos: ["6J4A0002.jpg","6J4A0036.jpg","6J4A0043.jpg","6J4A0044.jpg"]
+  },
+  "moto_17_Aprilia_RSV4_rouge_469_Simon": {
+    label: "Aprilia RSV4 Rouge #469",
+    sub: "Aprilia - Simon",
+    photos: ["6J4A0016.jpg","6J4A0046.jpg","6J4A0058.jpg","6J4A0063.jpg","6J4A0203.jpg","6J4A0233.jpg","6J4A0442.jpg","6J4A0461.jpg"]
+  },
+  "moto_18_Aprilia_RSV4_rouge_blanc_Wilfried": {
+    label: "Aprilia RSV4 Rouge Blanc",
+    sub: "Aprilia - Wilfried",
+    photos: ["6J4A0010.jpg"]
+  },
+  "moto_19_Kawasaki_ZX10R_noir_rouge_Revit": {
+    label: "ZX-10R Noir Rouge Revit",
+    sub: "Kawasaki ZX-10R",
+    photos: ["6J4A0001.jpg","6J4A0047.jpg","6J4A0119.jpg","IMG_8338.jpg","IMG_8423.jpg"]
+  },
+  "moto_20_Yamaha_R1_Paul_15": {
+    label: "Yamaha R1 #15",
+    sub: "Yamaha YZF-R1 - Paul",
+    photos: ["6J4A0007.jpg","6J4A0046.jpg","6J4A0059.jpg","6J4A0112.jpg"]
+  }
+};
+
+// ── Build grid ────────────────────────────────────────────────
+const grid = document.getElementById('grid');
+const keys = Object.keys(DATA);
+
+keys.forEach(folder => {
+  const d = DATA[folder];
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.search = (d.label + ' ' + d.sub + ' ' + folder).toLowerCase();
+  card.innerHTML = `
+    <div class="card-cover">
+      <img src="t_${folder.slice(5,7)}_${d.photos[0]}" alt="${d.label}" loading="lazy">
+    </div>
+    <div class="card-info">
+      <div class="card-name">${d.label}</div>
+      <div class="card-sub"><span class="card-dot"></span>${d.sub} - ${d.photos.length} photo${d.photos.length > 1 ? 's' : ''}</div>
+    </div>`;
+  card.addEventListener('click', () => openLb(folder, 0));
+  grid.appendChild(card);
+});
+
+// ── Search ────────────────────────────────────────────────────
+document.getElementById('search').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  document.querySelectorAll('.card').forEach(c => {
+    c.hidden = q && !c.dataset.search.includes(q);
+  });
+});
+
+// ── Lightbox ──────────────────────────────────────────────────
+const lb       = document.getElementById('lb');
+const lbImg    = document.getElementById('lb-img');
+const lbTitle  = document.getElementById('lb-title');
+const lbCount  = document.getElementById('lb-counter');
+const lbStrip  = document.getElementById('lb-strip-wrap');
+
+let curFolder = null, curIdx = 0;
+
+function openLb(folder, idx) {
+  curFolder = folder;
+  curIdx    = idx;
+  lbTitle.textContent = DATA[folder].label;
+
+  // Build strip
+  lbStrip.innerHTML = '';
+  DATA[folder].photos.forEach((p, i) => {
+    const t = document.createElement('div');
+    t.className = 'strip-thumb' + (i === idx ? ' active' : '');
+    t.innerHTML = `<img src="t_${folder.slice(5,7)}_${p}" alt="" loading="lazy">`;
+    t.addEventListener('click', () => goTo(i));
+    lbStrip.appendChild(t);
+  });
+
+  showPhoto(idx);
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function showPhoto(idx) {
+  const photos = DATA[curFolder].photos;
+  curIdx = (idx + photos.length) % photos.length;
+  lbImg.src = `m_${curFolder.slice(5,7)}_${photos[curIdx]}`;
+  lbCount.textContent = `${curIdx + 1} / ${photos.length}`;
+
+  // Update strip active
+  lbStrip.querySelectorAll('.strip-thumb').forEach((t, i) => {
+    t.classList.toggle('active', i === curIdx);
+  });
+  const active = lbStrip.children[curIdx];
+  if (active) active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+}
+
+function goTo(idx) { showPhoto(idx) }
+
+document.getElementById('lb-prev').addEventListener('click', () => showPhoto(curIdx - 1));
+document.getElementById('lb-next').addEventListener('click', () => showPhoto(curIdx + 1));
+document.getElementById('lb-close').addEventListener('click', closeLb);
+
+function closeLb() {
+  lb.classList.remove('open');
+  document.body.style.overflow = '';
+  lbImg.src = '';
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (!lb.classList.contains('open')) return;
+  if (e.key === 'ArrowLeft')  showPhoto(curIdx - 1);
+  if (e.key === 'ArrowRight') showPhoto(curIdx + 1);
+  if (e.key === 'Escape')     closeLb();
+});
+
+// Touch swipe
+let touchStartX = 0;
+lb.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX }, { passive: true });
+lb.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 50) showPhoto(curIdx + (dx < 0 ? 1 : -1));
+}, { passive: true });
+</script>
